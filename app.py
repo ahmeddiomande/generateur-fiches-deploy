@@ -65,8 +65,19 @@ elif menu == "📥 Génération RPO (DESK.py)":
             file_name="pack_fiches_rpo.zip",
             mime="application/zip"
         )
+        st.success("Fichier ZIP prêt à être téléchargé.")
     else:
         st.info("⚠️ Aucun fichier ZIP généré pour le moment.")
+        st.warning("Vérification du processus de génération du fichier ZIP :")
+        st.write(f"Vérification du chemin du fichier ZIP : {zip_file}")
+        st.write("Assurez-vous que le répertoire 'output/' existe et que le fichier ZIP a été généré correctement.")
+        st.write("Si vous voyez un message d'erreur, vérifiez les logs et le processus de génération.")
+        
+        # Vérifier si le répertoire "output" existe
+        if os.path.exists("output"):
+            st.write("Le répertoire 'output/' existe.")
+        else:
+            st.write("Le répertoire 'output/' n'existe pas.")
 
 # --- SECTION 5 : Étude des candidats ---
 elif menu == "🔍 Étude des candidats (🔒 en développement)":

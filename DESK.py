@@ -21,7 +21,7 @@ else:
 # --- Création du fichier Excel RPO ---
 EXCEL_FILE_PATH = os.path.join(output_directory, 'RPO.xlsx')
 
-# Authentification Google Sheets
+# --- Authentification Google Sheets ---
 SERVICE_ACCOUNT_FILE = './API/peak-dominion-453716-v3-502cdb22fa02.json'
 SPREADSHEET_ID = '1wl_OvLv7c8iN8Z40Xutu7CyrN9rTIQeKgpkDJFtyKIU'
 RANGE_NAME = 'Besoins ASI!A1:Z1000'
@@ -34,7 +34,12 @@ sheet = service.spreadsheets()
 result = sheet.values().get(spreadsheetId=SPREADSHEET_ID, range=RANGE_NAME).execute()
 values = result.get('values', [])
 
-# Créer un fichier Excel avec les données
+if not values:
+    print("Aucune donnée trouvée dans le Google Sheets.")
+else:
+    print(f"{len(values)} lignes de données récupérées depuis Google Sheets.")
+
+# Créer un fichier Excel avec les données récupérées
 wb = openpyxl.Workbook()
 ws = wb.active
 ws.title = "Feuil1"
@@ -50,9 +55,9 @@ if os.path.exists(EXCEL_FILE_PATH):
 else:
     print(f"Erreur : Le fichier RPO n'a pas été généré.")
 
-# --- Création du fichier ZIP ---
+# --- Créer le fichier ZIP ---
 zip_file = os.path.join(output_directory, "pack_fiches_rpo.zip")  # Crée le chemin complet du ZIP
-print(f"Vérification du fichier ZIP à : {zip_file}")
+print(f"Création du fichier ZIP à : {zip_file}")
 
 with zipfile.ZipFile(zip_file, 'w', zipfile.ZIP_DEFLATED) as zipf:
     # Ajouter le fichier RPO au ZIP
@@ -85,36 +90,4 @@ with zipfile.ZipFile(zip_file, 'w', zipfile.ZIP_DEFLATED) as zipf:
             "Taille de l'équipe": row[17] if len(row) > 17 else ""
         }
 
-        nom_fichier_base = f"{data['Nom du client']}_{data['Titre du poste recherché']}".replace("/", "_").replace("\\", "_")
-        chemin_fichier_word = f"fiches/{nom_fichier_base}.docx"
-        chemin_mail_word = f"mails/{nom_fichier_base}_MAIL.docx"
-
-        # Générer la fiche de poste
-        fiche_poste = generer_fiche_poste(data)
-        document_fiche = Document()
-        document_fiche.add_heading(f"Fiche de Poste : {data['Titre du poste recherché']}", level=1)
-        document_fiche.add_paragraph(fiche_poste)
-        document_fiche.save(chemin_fichier_word)
-
-        # Vérifier si la fiche de poste existe avant de l'ajouter au ZIP
-        if os.path.exists(chemin_fichier_word):
-            zipf.write(chemin_fichier_word, os.path.basename(chemin_fichier_word))
-            print(f"Fiche de poste ajoutée au ZIP : {chemin_fichier_word}")
-        else:
-            print(f"Erreur : Fiche de poste non trouvée pour {chemin_fichier_word}")
-
-        # Générer et sauvegarder le mail type
-        mail_type = generer_mail_type(data)
-        document_mail = Document()
-        document_mail.add_heading(f"Mail Type : {data['Titre du poste recherché']} chez {data['Nom du client']}", level=1)
-        document_mail.add_paragraph(mail_type)
-        document_mail.save(chemin_mail_word)
-
-        # Vérifier si le mail existe avant de l'ajouter au ZIP
-        if os.path.exists(chemin_mail_word):
-            zipf.write(chemin_mail_word, os.path.basename(chemin_mail_word))
-            print(f"Mail type ajouté au ZIP : {chemin_mail_word}")
-        else:
-            print(f"Erreur : Mail type non trouvé pour {chemin_mail_word}")
-
-    print(f"Le fichier ZIP a été créé avec succès à : {zip_file}")
+        #
