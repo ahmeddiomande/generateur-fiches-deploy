@@ -1,8 +1,6 @@
 import streamlit as st
 import os
-import zipfile
 from pathlib import Path
-import requests
 
 # --- CONFIGURATION DE LA PAGE ---
 st.set_page_config(page_title="Générateur de Fiches de Poste", page_icon="📝", layout="wide")
@@ -21,7 +19,7 @@ menu = st.sidebar.radio("Choisissez une section :", [
     "🔍 Étude des candidats (🔒 en développement)"
 ])
 
-# --- SECTION 1 : CSV ---
+# --- SECTION 1 : Création via un fichier CSV ---
 if menu == "📄 Création via un fichier CSV":
     st.subheader("Création de fiches de poste à partir d'un fichier CSV")
     uploaded_file = st.file_uploader("Upload du fichier CSV/Excel", type=["csv", "xlsx"])
@@ -30,7 +28,7 @@ if menu == "📄 Création via un fichier CSV":
             f.write(uploaded_file.read())
         st.success("Fichier reçu. Lancement du traitement... (à compléter avec JOB.py)")
 
-# --- SECTION 2 : Formulaire IDEALMATCH ---
+# --- SECTION 2 : Création via un formulaire IDEALMATCH ---
 elif menu == "🧾 Création via un formulaire IDEALMATCH":
     st.subheader("Création d'une fiche via formulaire IDEALMATCH")
     poste = st.text_input("Intitulé du poste")
@@ -39,7 +37,7 @@ elif menu == "🧾 Création via un formulaire IDEALMATCH":
     if st.button("Générer la fiche de poste"):
         st.success("Fiche de poste générée (fonctionnalité à connecter)")
 
-# --- SECTION 3 : JOB.py ---
+# --- SECTION 3 : JOB.py (Export des fiches de poste) ---
 elif menu == "📤 Export des fiches de poste (JOB.py)":
     st.subheader("Lancement de la génération complète via JOB.py")
     if st.button("Exécuter le script JOB.py"):
