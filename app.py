@@ -3,6 +3,7 @@ from PIL import Image
 import os
 from io import BytesIO
 import base64
+from pathlib import Path
 
 # --- CONFIGURATION DE LA PAGE ---
 st.set_page_config(page_title="Générateur de Fiches de Poste", page_icon="📝", layout="wide")
@@ -46,12 +47,38 @@ elif menu == "📤 Export des fiches de poste (JOB.py)":
         os.system("python JOB.py")
         st.success("Script exécuté. Fiches générées.")
 
+    fichier_xlsx = Path("data/fichier_cible.xlsx")
+    if fichier_xlsx.exists():
+        with open(fichier_xlsx, "rb") as f:
+            st.download_button(
+                label="📥 Télécharger le fichier Excel avec liens",
+                data=f,
+                file_name="Fiches_IDEALMATCH.xlsx",
+                mime="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
+            )
+    else:
+        st.info("⚠️ Aucun fichier Excel généré trouvé.")
+
 # --- SECTION 4 : DESK.py ---
 elif menu == "📥 Génération RPO (DESK.py)":
     st.subheader("Récupération des données Google Sheets (DESK.py)")
+
     if st.button("Lancer le script DESK.py"):
         os.system("python DESK.py")
-        st.success("RPO généré et prêt à être téléchargé.")
+        st.success("✅ RPO généré et prêt à être téléchargé.")
+
+    rpo_path = Path("data/fichier_cible.xlsx")
+    if rpo_path.exists():
+        with open(rpo_path, "rb") as f:
+            bytes_data = f.read()
+        st.download_button(
+            label="📥 Télécharger le fichier RPO",
+            data=bytes_data,
+            file_name="RPO_IDEALMATCH.xlsx",
+            mime="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
+        )
+    else:
+        st.info("⚠️ Aucun fichier RPO détecté pour le moment.")
 
 # --- SECTION 5 : Étude des candidats ---
 elif menu == "🔍 Étude des candidats (🔒 en développement)":
