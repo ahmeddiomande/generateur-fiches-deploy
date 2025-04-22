@@ -20,7 +20,7 @@ if not os.path.exists(output_directory):
 EXCEL_FILE_PATH = os.path.join(output_directory, 'RPO.xlsx')
 
 # Authentification Google Sheets
-SERVICE_ACCOUNT_FILE = '/path/to/your/service/account/file.json'  # À mettre à jour avec le chemin correct
+SERVICE_ACCOUNT_FILE = './API/peak-dominion-453716-v3-502cdb22fa02.json'
 SPREADSHEET_ID = '1wl_OvLv7c8iN8Z40Xutu7CyrN9rTIQeKgpkDJFtyKIU'
 RANGE_NAME = 'Besoins ASI!A1:Z1000'
 
