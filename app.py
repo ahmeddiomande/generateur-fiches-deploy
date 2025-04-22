@@ -46,6 +46,8 @@ elif menu == "📤 Export des fiches de poste (JOB.py)":
         st.success("Script exécuté. Fiches générées.")
 
     fichier_xlsx = Path("data/fichier_cible.xlsx")
+    st.write(f"Vérification du fichier Excel : {fichier_xlsx}")
+
     if fichier_xlsx.exists():
         with open(fichier_xlsx, "rb") as f:
             st.download_button(
@@ -56,6 +58,7 @@ elif menu == "📤 Export des fiches de poste (JOB.py)":
             )
     else:
         st.info("⚠️ Aucun fichier Excel généré trouvé.")
+        st.write("Le fichier n'existe pas. Vérifiez le processus de génération dans JOB.py.")
 
 # --- SECTION 4 : DESK.py ---
 elif menu == "📥 Génération RPO (DESK.py)":
@@ -69,21 +72,36 @@ elif menu == "📥 Génération RPO (DESK.py)":
     fiches_path = Path("fiches/")
     mails_path = Path("mails/")
 
+    # Débogage : vérifier les chemins de fichiers
+    st.write(f"Chemin du fichier RPO : {rpo_path}")
+    st.write(f"Chemin des fiches : {fiches_path}")
+    st.write(f"Chemin des mails : {mails_path}")
+
+    # Vérification de l'existence des fichiers
+    st.write(f"Vérification de l'existence du fichier RPO : {rpo_path.exists()}")
+    st.write(f"Vérification de l'existence du dossier fiches : {fiches_path.exists()}")
+    st.write(f"Vérification de l'existence du dossier mails : {mails_path.exists()}")
+
     # Créer le fichier ZIP contenant le RPO, les fiches et les mails
     if rpo_path.exists() and fiches_path.exists() and mails_path.exists():
+        st.write("Tous les fichiers nécessaires sont présents, création du fichier ZIP...")
+        
         # Créer un fichier ZIP
         zip_file = "output/pack_fiches_rpo.zip"
         with zipfile.ZipFile(zip_file, 'w', zipfile.ZIP_DEFLATED) as zipf:
             # Ajouter le fichier RPO
             zipf.write(rpo_path, "fichier_cible.xlsx")
-
+            st.write(f"Ajout du fichier RPO : {rpo_path}")
+            
             # Ajouter les fiches de poste
             for fiche in fiches_path.glob("*.docx"):
                 zipf.write(fiche, fiche.name)
-
+                st.write(f"Ajout de la fiche de poste : {fiche}")
+            
             # Ajouter les mails
             for mail in mails_path.glob("*.docx"):
                 zipf.write(mail, mail.name)
+                st.write(f"Ajout de l'email : {mail}")
 
         # Télécharger le fichier ZIP
         with open(zip_file, "rb") as f:
