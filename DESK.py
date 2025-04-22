@@ -2,6 +2,7 @@ import openpyxl
 import requests
 from docx import Document
 import os
+import zipfile
 from googleapiclient.discovery import build
 from google.oauth2.service_account import Credentials
 
@@ -14,7 +15,6 @@ API_KEY = os.getenv("OPENAI_API_KEY")
 def formater_stack(stack_brut):
     if not stack_brut:
         return "À définir"
-    # Séparateurs possibles dans les données (virgule, slash, espace, tiret)
     séparateurs = [",", "/", "|", ";", "\n"]
     for sep in séparateurs:
         if sep in stack_brut:
@@ -99,10 +99,10 @@ def generer_missions_generiques(titre_poste):
     return f"- Contribuer aux missions liées au poste de {titre_poste}.\n- Assurer un suivi rigoureux des livrables."
 
 # --- Authentification Google Sheets ---
-SERVICE_ACCOUNT_FILE = '/Users/ahmeddiomande/Documents/IDEALMATCH2025/API/peak-dominion-453716-v3-502cdb22fa02.json'
+SERVICE_ACCOUNT_FILE = '/path/to/your/service/account/file.json'
 SPREADSHEET_ID = '1wl_OvLv7c8iN8Z40Xutu7CyrN9rTIQeKgpkDJFtyKIU'
 RANGE_NAME = 'Besoins ASI!A1:Z1000'
-EXCEL_FILE_PATH = '/Users/ahmeddiomande/Documents/IDEALMATCH2025/Note_poste/RPO.xlsx'
+EXCEL_FILE_PATH = 'data/RPO.xlsx'
 
 credentials = Credentials.from_service_account_file(SERVICE_ACCOUNT_FILE, scopes=["https://www.googleapis.com/auth/spreadsheets.readonly"])
 service = build('sheets', 'v4', credentials=credentials)
@@ -135,6 +135,8 @@ wb_rpo = openpyxl.load_workbook(EXCEL_FILE_PATH)
 sheet_rpo = wb_rpo["Feuil1"]
 
 # --- Génération des documents ---
+fichiers_generes = []  # Liste des fichiers à ajouter au ZIP
+
 for row in sheet_rpo.iter_rows(min_row=2, values_only=True):
     if len(row) < 6:
         continue
@@ -157,8 +159,8 @@ for row in sheet_rpo.iter_rows(min_row=2, values_only=True):
     }
 
     nom_fichier_base = nettoyer_nom_fichier(f"{data['Nom du client']}_{data['Titre du poste recherché']}")
-    chemin_fichier_word = f"/Users/ahmeddiomande/Documents/IDEALMATCH2025/Fiche_de_poste/{nom_fichier_base}.docx"
-    chemin_mail_word = f"/Users/ahmeddiomande/Documents/IDEALMATCH2025/MAIL/{nom_fichier_base}_MAIL.docx"
+    chemin_fichier_word = f"fiches/{nom_fichier_base}.docx"
+    chemin_mail_word = f"mails/{nom_fichier_base}_MAIL.docx"
 
     # Générer Fiche
     fiche_poste = generer_fiche_poste(data)
@@ -174,9 +176,13 @@ for row in sheet_rpo.iter_rows(min_row=2, values_only=True):
     document_mail.add_paragraph(mail_type)
     document_mail.save(chemin_mail_word)
 
+    # Ajouter les fichiers générés à la liste
+    fichiers_generes.append(chemin_fichier_word)
+    fichiers_generes.append(chemin_mail_word)
+
     print(f"Fiche de poste enregistrée : {chemin_fichier_word}")
     print(f"Mail type enregistré : {chemin_mail_word}")
 
-print("\nToutes les fiches de poste et mails types ont été générés avec succès !")
-
-os.system('osascript -e \'display dialog "Toutes les fiches de poste et mails types ont été générés avec succès !" buttons {"OK"} default button "OK"\'')
+# Créer un fichier ZIP contenant RPO, les fiches et les mails
+def creer_zip(chemin_zip, fichiers):
+    with zipfile

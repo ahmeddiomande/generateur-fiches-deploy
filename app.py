@@ -1,9 +1,7 @@
 import streamlit as st
-from PIL import Image
 import os
-from io import BytesIO
-import base64
 from pathlib import Path
+import zipfile
 
 # --- CONFIGURATION DE LA PAGE ---
 st.set_page_config(page_title="Générateur de Fiches de Poste", page_icon="📝", layout="wide")
@@ -68,17 +66,36 @@ elif menu == "📥 Génération RPO (DESK.py)":
         st.success("✅ RPO généré et prêt à être téléchargé.")
 
     rpo_path = Path("data/fichier_cible.xlsx")
-    if rpo_path.exists():
-        with open(rpo_path, "rb") as f:
+    fiches_path = Path("fiches/")
+    mails_path = Path("mails/")
+
+    # Créer le fichier ZIP contenant le RPO, les fiches et les mails
+    if rpo_path.exists() and fiches_path.exists() and mails_path.exists():
+        # Créer un fichier ZIP
+        zip_file = "output/pack_fiches_rpo.zip"
+        with zipfile.ZipFile(zip_file, 'w', zipfile.ZIP_DEFLATED) as zipf:
+            # Ajouter le fichier RPO
+            zipf.write(rpo_path, "fichier_cible.xlsx")
+
+            # Ajouter les fiches de poste
+            for fiche in fiches_path.glob("*.docx"):
+                zipf.write(fiche, fiche.name)
+
+            # Ajouter les mails
+            for mail in mails_path.glob("*.docx"):
+                zipf.write(mail, mail.name)
+
+        # Télécharger le fichier ZIP
+        with open(zip_file, "rb") as f:
             bytes_data = f.read()
         st.download_button(
-            label="📥 Télécharger le fichier RPO",
+            label="📥 Télécharger le fichier ZIP",
             data=bytes_data,
-            file_name="RPO_IDEALMATCH.xlsx",
-            mime="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
+            file_name="pack_fiches_rpo.zip",
+            mime="application/zip"
         )
     else:
-        st.info("⚠️ Aucun fichier RPO détecté pour le moment.")
+        st.info("⚠️ Aucun fichier RPO, fiches de poste ou mails détectés pour le moment.")
 
 # --- SECTION 5 : Étude des candidats ---
 elif menu == "🔍 Étude des candidats (🔒 en développement)":
