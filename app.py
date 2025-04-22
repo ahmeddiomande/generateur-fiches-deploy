@@ -1,7 +1,8 @@
 import streamlit as st
 import os
-from pathlib import Path
 import zipfile
+from pathlib import Path
+import requests
 
 # --- CONFIGURATION DE LA PAGE ---
 st.set_page_config(page_title="Générateur de Fiches de Poste", page_icon="📝", layout="wide")
@@ -60,7 +61,7 @@ elif menu == "📤 Export des fiches de poste (JOB.py)":
         st.info("⚠️ Aucun fichier Excel généré trouvé.")
         st.write("Le fichier n'existe pas. Vérifiez le processus de génération dans JOB.py.")
 
-# --- SECTION 4 : DESK.py ---
+# --- SECTION 4 : DESK.py (Génération RPO) ---
 elif menu == "📥 Génération RPO (DESK.py)":
     st.subheader("Récupération des données Google Sheets (DESK.py)")
 
@@ -68,42 +69,11 @@ elif menu == "📥 Génération RPO (DESK.py)":
         os.system("python DESK.py")
         st.success("✅ RPO généré et prêt à être téléchargé.")
 
-    rpo_path = Path("data/fichier_cible.xlsx")
-    fiches_path = Path("fiches/")
-    mails_path = Path("mails/")
+    zip_file = "output/pack_fiches_rpo.zip"  # Vérifie ce chemin, le fichier ZIP doit être généré ici
 
-    # Débogage : vérifier les chemins de fichiers
-    st.write(f"Chemin du fichier RPO : {rpo_path}")
-    st.write(f"Chemin des fiches : {fiches_path}")
-    st.write(f"Chemin des mails : {mails_path}")
-
-    # Vérification de l'existence des fichiers
-    st.write(f"Vérification de l'existence du fichier RPO : {rpo_path.exists()}")
-    st.write(f"Vérification de l'existence du dossier fiches : {fiches_path.exists()}")
-    st.write(f"Vérification de l'existence du dossier mails : {mails_path.exists()}")
-
-    # Créer le fichier ZIP contenant le RPO, les fiches et les mails
-    if rpo_path.exists() and fiches_path.exists() and mails_path.exists():
-        st.write("Tous les fichiers nécessaires sont présents, création du fichier ZIP...")
-        
-        # Créer un fichier ZIP
-        zip_file = "output/pack_fiches_rpo.zip"
-        with zipfile.ZipFile(zip_file, 'w', zipfile.ZIP_DEFLATED) as zipf:
-            # Ajouter le fichier RPO
-            zipf.write(rpo_path, "fichier_cible.xlsx")
-            st.write(f"Ajout du fichier RPO : {rpo_path}")
-            
-            # Ajouter les fiches de poste
-            for fiche in fiches_path.glob("*.docx"):
-                zipf.write(fiche, fiche.name)
-                st.write(f"Ajout de la fiche de poste : {fiche}")
-            
-            # Ajouter les mails
-            for mail in mails_path.glob("*.docx"):
-                zipf.write(mail, mail.name)
-                st.write(f"Ajout de l'email : {mail}")
-
-        # Télécharger le fichier ZIP
+    # Vérifier si le fichier ZIP existe
+    st.write(f"Vérification du fichier ZIP à {zip_file}")
+    if os.path.exists(zip_file):
         with open(zip_file, "rb") as f:
             bytes_data = f.read()
         st.download_button(
@@ -113,7 +83,7 @@ elif menu == "📥 Génération RPO (DESK.py)":
             mime="application/zip"
         )
     else:
-        st.info("⚠️ Aucun fichier RPO, fiches de poste ou mails détectés pour le moment.")
+        st.info("⚠️ Aucun fichier ZIP généré pour le moment.")
 
 # --- SECTION 5 : Étude des candidats ---
 elif menu == "🔍 Étude des candidats (🔒 en développement)":
