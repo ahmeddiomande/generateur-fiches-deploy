@@ -10,11 +10,13 @@ from google.oauth2.service_account import Credentials
 load_dotenv()
 API_KEY = os.getenv("OPENAI_API_KEY")
 
-# --- Créer le répertoire `output/` si nécessaire ---
+# --- Créer le répertoire output/ si nécessaire ---
 output_directory = "output"
 if not os.path.exists(output_directory):
     os.makedirs(output_directory)
     print(f"Répertoire {output_directory} créé.")
+else:
+    print(f"Le répertoire {output_directory} existe déjà.")
 
 # --- Création du fichier Excel RPO ---
 EXCEL_FILE_PATH = os.path.join(output_directory, 'RPO.xlsx')
@@ -42,9 +44,15 @@ for row in values:
 wb.save(EXCEL_FILE_PATH)
 print(f"Le fichier RPO a été créé et sauvegardé à : {EXCEL_FILE_PATH}")
 
-# --- Créer un fichier ZIP ---
+# --- Vérification de l'existence du fichier RPO ---
+if os.path.exists(EXCEL_FILE_PATH):
+    print(f"Le fichier RPO existe et sera ajouté au ZIP à {EXCEL_FILE_PATH}")
+else:
+    print(f"Erreur : Le fichier RPO n'a pas été généré.")
+
+# --- Création du fichier ZIP ---
 zip_file = os.path.join(output_directory, "pack_fiches_rpo.zip")  # Crée le chemin complet du ZIP
-print(f"Création du fichier ZIP à : {zip_file}")
+print(f"Vérification du fichier ZIP à : {zip_file}")
 
 with zipfile.ZipFile(zip_file, 'w', zipfile.ZIP_DEFLATED) as zipf:
     # Ajouter le fichier RPO au ZIP
@@ -52,7 +60,7 @@ with zipfile.ZipFile(zip_file, 'w', zipfile.ZIP_DEFLATED) as zipf:
         zipf.write(EXCEL_FILE_PATH, os.path.basename(EXCEL_FILE_PATH))
         print(f"Le fichier RPO a été ajouté au ZIP : {EXCEL_FILE_PATH}")
     else:
-        print(f"Erreur : Le fichier RPO n'a pas été créé.")
+        print(f"Erreur : Le fichier RPO n'existe pas.")
 
     # Générer et ajouter les fiches de poste et les mails
     for row in sheet.iter_rows(min_row=2, values_only=True):
@@ -88,8 +96,12 @@ with zipfile.ZipFile(zip_file, 'w', zipfile.ZIP_DEFLATED) as zipf:
         document_fiche.add_paragraph(fiche_poste)
         document_fiche.save(chemin_fichier_word)
 
-        zipf.write(chemin_fichier_word, os.path.basename(chemin_fichier_word))
-        print(f"Fiche de poste ajoutée au ZIP : {chemin_fichier_word}")
+        # Vérifier si la fiche de poste existe avant de l'ajouter au ZIP
+        if os.path.exists(chemin_fichier_word):
+            zipf.write(chemin_fichier_word, os.path.basename(chemin_fichier_word))
+            print(f"Fiche de poste ajoutée au ZIP : {chemin_fichier_word}")
+        else:
+            print(f"Erreur : Fiche de poste non trouvée pour {chemin_fichier_word}")
 
         # Générer et sauvegarder le mail type
         mail_type = generer_mail_type(data)
@@ -98,7 +110,11 @@ with zipfile.ZipFile(zip_file, 'w', zipfile.ZIP_DEFLATED) as zipf:
         document_mail.add_paragraph(mail_type)
         document_mail.save(chemin_mail_word)
 
-        zipf.write(chemin_mail_word, os.path.basename(chemin_mail_word))
-        print(f"Mail type ajouté au ZIP : {chemin_mail_word}")
+        # Vérifier si le mail existe avant de l'ajouter au ZIP
+        if os.path.exists(chemin_mail_word):
+            zipf.write(chemin_mail_word, os.path.basename(chemin_mail_word))
+            print(f"Mail type ajouté au ZIP : {chemin_mail_word}")
+        else:
+            print(f"Erreur : Mail type non trouvé pour {chemin_mail_word}")
 
     print(f"Le fichier ZIP a été créé avec succès à : {zip_file}")
