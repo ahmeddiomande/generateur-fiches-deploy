@@ -5,22 +5,24 @@ import openai
 from docx import Document
 
 # --- CONFIGURATION ---
-openai.api_key = "OPENAI_API_KEY"
+from dotenv import load_dotenv
+load_dotenv()
+openai.api_key = os.getenv("OPENAI_API_KEY")
 
-CSV_PATH = "/Users/ahmeddiomande/Documents/IDEALMATCH2025/JOB CREATOR/Besoins/Suivi des opportunités.csv"
-EXCEL_PATH = "/Users/ahmeddiomande/Documents/IDEALMATCH2025/JOB CREATOR/Besoins/fichier_cible.xlsx"
-MAIL_DIR = "/Users/ahmeddiomande/Documents/IDEALMATCH2025/JOB CREATOR/redaction_mail"
-PROMPT_DIR = "/Users/ahmeddiomande/Documents/IDEALMATCH2025/JOB CREATOR/Prompts"
+CSV_PATH = str(Path(__file__).parent / "data" / "Suivi_des_opportunités.csv")
+EXCEL_PATH = str(Path(__file__).parent / "data" / "fichier_cible.xlsx")
+MAIL_DIR = str(Path(__file__).parent / "redaction_mail")
+PROMPT_DIR = str(Path(__file__).parent / "prompts")
 
 DOSSIERS_PROMPTS = {
     "Annonces_anonymes": {
         "colonne": "Annonces_anonymes",
-        "chemin": "/Users/ahmeddiomande/Documents/IDEALMATCH2025/JOB CREATOR/Fiche_de_poste/Annonces_anonymes",
+        "chemin": str(Path(__file__).parent / "fiches" / "Annonces_anonymes"),
         "prompt_file": "anonyme.txt"
     },
     "Annonce_ASI_interne": {
         "colonne": "Annonce_ASI_interne",
-        "chemin": "/Users/ahmeddiomande/Documents/IDEALMATCH2025/JOB CREATOR/Fiche_de_poste/Annonce_ASI_interne",
+        "chemin": str(Path(__file__).parent / "fiches" / "Annonce_ASI_interne"),
         "prompt_file": "interne.txt"
     },
     "Annonce_client_ASI": {

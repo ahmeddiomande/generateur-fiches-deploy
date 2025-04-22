@@ -6,7 +6,9 @@ from googleapiclient.discovery import build
 from google.oauth2.service_account import Credentials
 
 # Clé API OpenAI
-API_KEY = "OPENAI_API_KEY"
+from dotenv import load_dotenv
+load_dotenv()
+API_KEY = os.getenv("OPENAI_API_KEY")
 
 # Nettoyer la stack technique (séparer par virgules)
 def formater_stack(stack_brut):
