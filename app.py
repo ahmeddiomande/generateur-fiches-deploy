@@ -1,6 +1,6 @@
 import streamlit as st
 import os
-from pathlib import Path
+import pandas as pd
 
 # --- Configuration de la page ---
 st.set_page_config(page_title="Générateur de Fiches de Poste", page_icon="📝", layout="wide")
@@ -50,34 +50,18 @@ elif menu == "📥 Génération RPO (DESK.py)":
 
     if st.button("Lancer le script DESK.py"):
         os.system("python DESK.py")
-        st.success("✅ RPO généré et prêt à être téléchargé.")
+        st.success("✅ RPO généré et prêt à être affiché.")
 
-    # Vérification de l'existence du fichier ZIP généré
-    zip_file = "output/pack_fiches_rpo.zip"  # Le fichier ZIP généré par DESK.py
-    st.write(f"Vérification du fichier ZIP à {zip_file}")
+    # Vérification et affichage du fichier RPO dans Streamlit
+    EXCEL_FILE_PATH = "output/RPO.xlsx"
 
-    if os.path.exists(zip_file):
-        with open(zip_file, "rb") as f:
-            bytes_data = f.read()
-        st.download_button(
-            label="📥 Télécharger le fichier ZIP",
-            data=bytes_data,
-            file_name="pack_fiches_rpo.zip",
-            mime="application/zip"
-        )
-        st.success("Fichier ZIP prêt à être téléchargé.")
+    if os.path.exists(EXCEL_FILE_PATH):
+        st.write("Affichage des données du fichier RPO :")
+        df = pd.read_excel(EXCEL_FILE_PATH)
+        st.dataframe(df)  # Affiche les données du fichier Excel dans Streamlit
     else:
-        st.info("⚠️ Aucun fichier ZIP généré pour le moment.")
-        st.warning("Vérification du processus de génération du fichier ZIP :")
-        st.write(f"Vérification du chemin du fichier ZIP : {zip_file}")
-        st.write("Assurez-vous que le répertoire 'output/' existe et que le fichier ZIP a été généré correctement.")
-        st.write("Si vous voyez un message d'erreur, vérifiez les logs et le processus de génération.")
-        
-        # Vérifier si le répertoire "output" existe
-        if os.path.exists("output"):
-            st.write("Le répertoire 'output/' existe.")
-        else:
-            st.write("Le répertoire 'output/' n'existe pas.")
+        st.info("⚠️ Aucun fichier RPO généré pour le moment.")
+        st.write("Assurez-vous que le répertoire 'output/' contient bien le fichier 'RPO.xlsx'.")
 
 # --- SECTION 5 : Étude des candidats ---
 elif menu == "🔍 Étude des candidats (🔒 en développement)":
