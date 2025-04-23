@@ -29,21 +29,17 @@ Cet outil vous permet de générer des fiches de poste personnalisées à l'aide
 - Entrez votre **prompt personnalisé** dans la zone de texte ci-dessous.
 - Cliquez sur le bouton "Générer la Fiche de Poste" pour obtenir une fiche automatiquement générée.
 - La fiche sera basée sur votre description du poste et des critères de sélection.
-
-📝 **Astuces** :
-- Soyez précis dans votre description pour obtenir les meilleurs résultats.
-- L'outil utilise la dernière version de GPT-3.5 pour vous fournir des résultats de qualité.
 """)
 
 # --- Zone de saisie du prompt de l'utilisateur ---
 user_prompt = st.text_area("Écrivez ici votre prompt pour générer une fiche de poste :", 
                           "Entrez ici le prompt pour ChatGPT...")
 
-# --- Bouton pour envoyer la demande à OpenAI ---
+# --- Bouton pour générer la fiche de poste à partir du prompt ---
 if st.button('Générer la Fiche de Poste'):
     if user_prompt:
         try:
-            # Appeler l'API OpenAI avec le bon point de terminaison (chat/completions)
+            # Appeler l'API OpenAI avec le prompt de l'utilisateur
             response = openai.ChatCompletion.create(
                 model="gpt-3.5-turbo",  # Ou gpt-4 si tu l'as
                 messages=[
@@ -60,3 +56,8 @@ if st.button('Générer la Fiche de Poste'):
             st.error(f"Erreur lors de la génération de la fiche de poste : {e}")
     else:
         st.warning("Veuillez entrer un prompt avant de soumettre.")
+
+# --- Bouton pour générer la fiche de poste à partir du fichier RPO ---
+if st.button('Générer à partir du fichier RPO'):
+    # Cette partie sera implémentée plus tard pour traiter le fichier RPO
+    st.info("Le traitement du fichier RPO sera ajouté ici prochainement.")
