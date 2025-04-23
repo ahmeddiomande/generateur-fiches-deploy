@@ -1,2 +1,6 @@
+# Ignorer les fichiers sensibles
 .env
-/API/*.json
+
+# Ignorer les fichiers JSON de service API (remplacer par le répertoire ou le fichier exact)
+API/*.json
+/.devcontainer/*.json
