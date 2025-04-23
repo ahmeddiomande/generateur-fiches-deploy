@@ -62,15 +62,18 @@ if st.button('Générer la Fiche de Poste'):
     if user_prompt:
         try:
             # Appeler l'API OpenAI avec le prompt de l'utilisateur
-            response = openai.Completion.create(
+            response = openai.ChatCompletion.create(
                 model="gpt-3.5-turbo",  # Ou gpt-4 si tu l'as
-                prompt=user_prompt,
+                messages=[
+                    {"role": "system", "content": "Vous êtes un assistant générateur de fiches de poste."},
+                    {"role": "user", "content": user_prompt}
+                ],
                 max_tokens=500
             )
             
             # Afficher la réponse générée par ChatGPT
             st.subheader('Fiche de Poste Générée:')
-            st.write(response.choices[0].text.strip())
+            st.write(response['choices'][0]['message']['content'].strip())
         
         except Exception as e:
             st.error(f"Erreur lors de la génération de la fiche de poste : {e}")
@@ -83,51 +86,44 @@ if st.button('Générer à partir du fichier RPO'):
     try:
         donnees_rpo = recuperer_donnees_google_sheet()
 
-        for poste_selectionne in donnees_rpo:
+        for poste_selectionne in donnees_rpo[1:]:  # Ignore la première ligne (les en-têtes)
             # Vérifier si les données sont présentes avant de les ajouter
-            titre_poste = poste_selectionne.get('Titre du poste recherché', None)
-            duree_mission = poste_selectionne.get('Durée de la mission', '6 mois')  # Si vide, mettre 6 mois
-            statut_mission = poste_selectionne.get('statut mission', None)
-            salaire = poste_selectionne.get('Salaire', None)
-            teletravail = poste_selectionne.get('Télétravail', None)
-            date_demarrage = poste_selectionne.get('Date de démarrage', None)
-            competences = poste_selectionne.get('Compétences obligatoires', None)
-            projet = poste_selectionne.get('Projet sur lequel va travailler le ou la candidate :', None)
-            client = poste_selectionne.get('Nom du client', None)
-            localisation = poste_selectionne.get('Localisation', None)
+            titre_poste = poste_selectionne[5] if len(poste_selectionne) > 5 else 'Titre non spécifié'
+            duree_mission = poste_selectionne[13] if len(poste_selectionne) > 13 else '6 mois'  # Valeur par défaut
+            statut_mission = poste_selectionne[6] if len(poste_selectionne) > 6 else ''
+            salaire = poste_selectionne[14] if len(poste_selectionne) > 14 else ''
+            teletravail = poste_selectionne[18] if len(poste_selectionne) > 18 else ''
+            date_demarrage = poste_selectionne[12] if len(poste_selectionne) > 12 else ''
+            competences = poste_selectionne[17] if len(poste_selectionne) > 17 else ''
+            projet = poste_selectionne[15] if len(poste_selectionne) > 15 else ''
+            client = poste_selectionne[9] if len(poste_selectionne) > 9 else ''
+            localisation = poste_selectionne[10] if len(poste_selectionne) > 10 else ''
 
             # Construire le prompt en n'ajoutant que les informations disponibles
             prompt_fiche = "Description du poste :\n"
-
-            if titre_poste:
-                prompt_fiche += f"- Titre du poste recherché : {titre_poste}\n"
-            if duree_mission:
-                prompt_fiche += f"- Durée de la mission : {duree_mission}\n"
-            if statut_mission:
-                prompt_fiche += f"- Statut mission : {statut_mission}\n"
-            if projet:
-                prompt_fiche += f"- Projet : {projet}\n"
-            if competences:
-                prompt_fiche += f"- Compétences : {competences}\n"
-            if salaire:
-                prompt_fiche += f"- Salaire : {salaire}\n"
-            if teletravail:
-                prompt_fiche += f"- Télétravail : {teletravail}\n"
-            if date_demarrage:
-                prompt_fiche += f"- Date de démarrage : {date_demarrage}\n"
-            if localisation:
-                prompt_fiche += f"- Localisation : {localisation}\n"
+            prompt_fiche += f"- Titre du poste recherché : {titre_poste}\n"
+            prompt_fiche += f"- Durée de la mission : {duree_mission}\n"
+            prompt_fiche += f"- Statut mission : {statut_mission}\n" if statut_mission else ""
+            prompt_fiche += f"- Projet : {projet}\n" if projet else ""
+            prompt_fiche += f"- Compétences : {competences}\n" if competences else ""
+            prompt_fiche += f"- Salaire : {salaire}\n" if salaire else ""
+            prompt_fiche += f"- Télétravail : {teletravail}\n" if teletravail else ""
+            prompt_fiche += f"- Date de démarrage : {date_demarrage}\n" if date_demarrage else ""
+            prompt_fiche += f"- Localisation : {localisation}\n" if localisation else ""
 
             # Appeler l'API OpenAI pour générer la fiche de poste
-            response = openai.Completion.create(
+            response = openai.ChatCompletion.create(
                 model="gpt-3.5-turbo",  # Ou gpt-4 si tu l'as
-                prompt=prompt_fiche,
+                messages=[
+                    {"role": "system", "content": "Vous êtes un assistant générateur de fiches de poste."},
+                    {"role": "user", "content": prompt_fiche}
+                ],
                 max_tokens=500
             )
 
             # Afficher la réponse générée par ChatGPT
             st.subheader(f'Fiche de Poste pour {titre_poste}:')
-            st.write(response.choices[0].text.strip())
+            st.write(response['choices'][0]['message']['content'].strip())
         
     except Exception as e:
         st.error(f"Erreur lors de la récupération ou du traitement des données : {e}")
