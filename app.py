@@ -16,7 +16,8 @@ menu = st.sidebar.radio("Choisissez une section :", [
     "🧾 Création via un formulaire IDEALMATCH",
     "📤 Export des fiches de poste (JOB.py)",
     "📥 Génération RPO (DESK.py)",
-    "🔍 Étude des candidats (🔒 en développement)"
+    "🔍 Étude des candidats (🔒 en développement)",
+    "🧪 Nouveau Test"  # Nouvel onglet ajouté ici
 ])
 
 # --- SECTION 1 : CSV ---
@@ -67,3 +68,11 @@ elif menu == "📥 Génération RPO (DESK.py)":
 elif menu == "🔍 Étude des candidats (🔒 en développement)":
     st.subheader("🔒 Fonctionnalité bientôt disponible !")
     st.info("Cette section sera bientôt activée pour l'analyse intelligente des candidats.")
+
+# --- SECTION 6 : Nouveau Test ---
+elif menu == "🧪 Nouveau Test":  # Nouveau onglet ajouté
+    st.subheader("Bienvenue dans l'onglet Nouveau Test")
+    
+    # Bouton dans l'onglet Nouveau Test
+    if st.button("Lancer le Nouveau Test"):
+        st.write("Le test a été lancé avec succès ! 🎉")
