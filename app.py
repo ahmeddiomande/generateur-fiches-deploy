@@ -43,16 +43,18 @@ user_prompt = st.text_area("Écrivez ici votre prompt pour générer une fiche d
 if st.button('Générer la Fiche de Poste'):
     if user_prompt:
         try:
-            # Appeler l'API OpenAI avec le prompt de l'utilisateur
-            response = openai.Completion.create(
+            # Appeler l'API OpenAI avec le bon point de terminaison (chat/completions)
+            response = openai.ChatCompletion.create(
                 model="gpt-3.5-turbo",  # Ou gpt-4 si tu l'as
-                prompt=user_prompt,
+                messages=[
+                    {"role": "user", "content": user_prompt}
+                ],
                 max_tokens=500
             )
             
             # Afficher la réponse générée par ChatGPT
             st.subheader('Fiche de Poste Générée:')
-            st.write(response.choices[0].text.strip())
+            st.write(response['choices'][0]['message']['content'].strip())
         
         except Exception as e:
             st.error(f"Erreur lors de la génération de la fiche de poste : {e}")
