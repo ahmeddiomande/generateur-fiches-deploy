@@ -1,6 +1,7 @@
 import streamlit as st
 import os
 import pandas as pd
+import subprocess  # Pour appeler un autre programme Python (nouveau_test.py)
 
 # --- Configuration de la page ---
 st.set_page_config(page_title="Générateur de Fiches de Poste", page_icon="📝", layout="wide")
@@ -17,7 +18,7 @@ menu = st.sidebar.radio("Choisissez une section :", [
     "📤 Export des fiches de poste (JOB.py)",
     "📥 Génération RPO (DESK.py)",
     "🔍 Étude des candidats (🔒 en développement)",
-    "🧪 Nouveau Test"  # Nouvel onglet ajouté ici
+    "🧪 Nouveau Test"  # Ajout de l'onglet "Nouveau Test"
 ])
 
 # --- SECTION 1 : CSV ---
@@ -70,9 +71,13 @@ elif menu == "🔍 Étude des candidats (🔒 en développement)":
     st.info("Cette section sera bientôt activée pour l'analyse intelligente des candidats.")
 
 # --- SECTION 6 : Nouveau Test ---
-elif menu == "🧪 Nouveau Test":  # Nouveau onglet ajouté
+elif menu == "🧪 Nouveau Test":  # Lorsque l'utilisateur choisit cet onglet
     st.subheader("Bienvenue dans l'onglet Nouveau Test")
     
-    # Bouton dans l'onglet Nouveau Test
+    # Bouton pour lancer le test
     if st.button("Lancer le Nouveau Test"):
-        st.write("Le test a été lancé avec succès ! 🎉")
+        # Appel du script Python 'nouveau_test.py'
+        result = subprocess.run(['python', 'nouveau_test.py'], capture_output=True, text=True)
+        
+        # Affichage du message de confirmation
+        st.write(result.stdout)  # Affiche la sortie de notre programme "nouveau_test.py"
