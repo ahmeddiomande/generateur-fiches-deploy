@@ -1,68 +1,143 @@
 import openai
 import streamlit as st
 import os
-from dotenv import load_dotenv
 from googleapiclient.discovery import build
+from googleapiclient.http import MediaFileUpload
+from docx import Document
+from dotenv import load_dotenv
 from google.oauth2.service_account import Credentials
-import pandas as pd
 
 # Charger les variables d'environnement depuis le fichier .env
 load_dotenv()
 
 # Récupérer la clé API OpenAI depuis le fichier .env
 API_KEY = os.getenv("OPENAI_API_KEY")
-openai.api_key = API_KEY
 
-# --- Fonction pour récupérer les données depuis Google Sheets ---
-SERVICE_ACCOUNT_FILE = '/Users/ahmeddiomande/Documents/IDEALMATCH2025/generateur-fiches-clean/.devcontainer/peak-dominion-453716-v3-502cdb22fa02.json'  # Chemin correct vers le fichier JSON
-SPREADSHEET_ID = '1wl_OvLv7c8iN8Z40Xutu7CyrN9rTIQeKgpkDJFtyKIU'  # Remplacer par l'ID de ton fichier Google Sheets
-RANGE_NAME = 'Besoins ASI!A1:Z1000'
+# Vérifier si la clé API a été correctement chargée
+if not API_KEY:
+    st.error("La clé API OpenAI est manquante. Assurez-vous qu'elle est dans le fichier .env.")
+else:
+    openai.api_key = API_KEY
 
+# --- Fonction pour récupérer les données de Google Sheets ---
+# Chemin du fichier .json et ID du dossier Google Drive
+SERVICE_ACCOUNT_FILE = '/Users/ahmeddiomande/Documents/IDEALMATCH2025/generateur-fiches-clean/.devcontainer/peak-dominion-453716-v3-502cdb22fa02.json'
+FOLDER_ID = '19uTtwgjpK4tYjcENCSDbpLCtAgK_sGkW'  # ID de ton dossier Google Drive
+
+# Créer les identifiants d'authentification pour l'API Google Sheets
+credentials = Credentials.from_service_account_file(SERVICE_ACCOUNT_FILE, scopes=["https://www.googleapis.com/auth/spreadsheets.readonly"])
+
+# Construire le service pour l'API Google Sheets
+service = build('sheets', 'v4', credentials=credentials)
+
+SPREADSHEET_ID = '1wl_OvLv7c8iN8Z40Xutu7CyrN9rTIQeKgpkDJFtyKIU'  # ID de ton fichier Google Sheets
+RANGE_NAME = 'Besoins ASI!A1:Z1000'  # Plage des données
+
+# Fonction pour récupérer les données depuis la feuille de calcul
 def recuperer_donnees_google_sheet():
-    credentials = Credentials.from_service_account_file(SERVICE_ACCOUNT_FILE, scopes=["https://www.googleapis.com/auth/spreadsheets.readonly"])
-    service = build('sheets', 'v4', credentials=credentials)
     sheet = service.spreadsheets()
     result = sheet.values().get(spreadsheetId=SPREADSHEET_ID, range=RANGE_NAME).execute()
     values = result.get('values', [])
     return values
 
-# --- Interface Streamlit ---
+# --- Fonction pour générer la fiche de poste dans Google Drive ---
+def enregistrer_fiche_google_drive(nom_fichier, contenu_fiche):
+    doc = Document()
+    doc.add_heading(f'Fiche de Poste : {nom_fichier}', 0)
+    doc.add_paragraph(contenu_fiche)
+    
+    # Sauvegarder le fichier localement
+    chemin_fichier = f'/content/drive/My Drive/{nom_fichier}.docx'
+    doc.save(chemin_fichier)
+
+    # Ajouter le fichier à Google Drive
+    file_metadata = {
+        'name': f'{nom_fichier}.docx',
+        'parents': [FOLDER_ID]
+    }
+
+    media = MediaFileUpload(chemin_fichier, mimetype='application/vnd.openxmlformats-officedocument.wordprocessingml.document')
+    drive_service = build('drive', 'v3', credentials=credentials)
+    
+    file = drive_service.files().create(body=file_metadata, media_body=media, fields='id').execute()
+
+    return f"Fichier généré et stocké sur Google Drive : https://drive.google.com/file/d/{file['id']}/view"
+
+# --- Interface utilisateur Streamlit ---
 st.title('🎯 IDEALMATCH JOB CREATOR')
 
-# Zone de saisie du prompt utilisateur
-user_prompt = st.text_area("Écrivez ici votre prompt pour générer une fiche de poste :", "Entrez ici le prompt pour ChatGPT...")
+# Texte introductif
+st.markdown("""
+Bienvenue dans l'outil **IDEALMATCH JOB CREATOR** !  
+Cet outil vous permet de générer des fiches de poste personnalisées à l'aide de l'intelligence artificielle (ChatGPT).
 
-# Bouton pour générer à partir du fichier RPO
-if st.button("Générer à partir du fichier RPO"):
-    donnees_rpo = recuperer_donnees_google_sheet()
-    if donnees_rpo:
-        st.write("Données récupérées avec succès.")
-        # Convertir les données en DataFrame pour un traitement facile
-        df = pd.DataFrame(donnees_rpo[1:], columns=donnees_rpo[0])
-        st.write(df)  # Affiche les premières lignes du fichier pour validation
+### Instructions :
+- Entrez votre **prompt personnalisé** dans la zone de texte ci-dessous.
+- Cliquez sur le bouton "Générer la Fiche de Poste" pour obtenir une fiche automatiquement générée.
+- La fiche sera basée sur votre description du poste et des critères de sélection.
 
-        # Pour chaque ligne du DataFrame, générer une fiche de poste
-        for _, row in df.iterrows():
-            # Exemple d'utilisation du prompt pour chaque ligne
-            prompt = user_prompt.format(**row.to_dict())
-            try:
-                # Appeler l'API OpenAI avec le prompt et générer une fiche de poste
-                response = openai.ChatCompletion.create(
-                    model="gpt-3.5-turbo",  # Ou gpt-4 si tu l'as
-                    messages=[{"role": "user", "content": prompt}],
-                    max_tokens=500
-                )
+📝 **Astuces** :
+- Soyez précis dans votre description pour obtenir les meilleurs résultats.
+- L'outil utilise la dernière version de GPT-3.5 pour vous fournir des résultats de qualité.
+""")
 
-                # Afficher la fiche de poste générée
-                fiche_poste = response.choices[0].message['content'].strip()
-                st.subheader(f"Fiche de Poste pour {row['Titre du poste recherché']}")
-                st.write(fiche_poste)
+# --- Zone de saisie du prompt de l'utilisateur ---
+user_prompt = st.text_area("Écrivez ici votre prompt pour générer une fiche de poste :", 
+                          "Entrez ici le prompt pour ChatGPT...")
 
-                # Sauvegarde sur Google Drive (mettre à jour avec ton code de sauvegarde sur Drive)
-                # Exemple fictif :
-                # with open(f"/content/drive/MyDrive/fiche_poste_{row['Titre du poste recherché']}.txt", "w") as f:
-                #     f.write(fiche_poste)
-            except Exception as e:
-                st.error(f"Erreur lors de la génération de la fiche de poste : {e}")
+# --- Bouton pour envoyer la demande à OpenAI ---
+if st.button('Générer la Fiche de Poste'):
+    if user_prompt:
+        try:
+            # Appeler l'API OpenAI avec le prompt de l'utilisateur
+            response = openai.Completion.create(
+                model="gpt-3.5-turbo",  # Ou gpt-4 si tu l'as
+                prompt=user_prompt,
+                max_tokens=500
+            )
+            
+            # Afficher la réponse générée par ChatGPT
+            st.subheader('Fiche de Poste Générée:')
+            st.write(response.choices[0].text.strip())
+        
+        except Exception as e:
+            st.error(f"Erreur lors de la génération de la fiche de poste : {e}")
     else:
-        st.error("Erreur lors de la récupération des données depuis Google Sheets.")
+        st.warning("Veuillez entrer un prompt avant de soumettre.")
+
+# --- Bouton pour générer la fiche de poste à partir de Google Sheets ---
+if st.button('Générer à partir du fichier RPO'):
+    # Récupérer les données du fichier RPO
+    donnees_rpo = recuperer_donnees_google_sheet()
+
+    for ligne in donnees_rpo[1:]:
+        poste_selectionne = dict(zip(donnees_rpo[0], ligne))  # Associer les colonnes aux valeurs de la ligne
+
+        # Créer le prompt pour OpenAI avec les données récupérées
+        prompt_rpo = f"""Générer une fiche de poste pour le poste {poste_selectionne['Titre du poste recherché']} en utilisant les informations suivantes :
+        - Durée de la mission : {poste_selectionne['Durée de la mission']}
+        - Statut mission : {poste_selectionne['statut mission']}
+        - Compétences obligatoires : {poste_selectionne['Compétences obligatoires ( Préciser technologies principales et frameworks pour les postes techniques )']}
+        - Projet : {poste_selectionne['Projet sur lequel va travailler le ou la candidate :']}
+        - Localisation : {poste_selectionne['Localisation']}
+        """
+
+        try:
+            # Appeler l'API OpenAI avec le prompt généré
+            response_rpo = openai.Completion.create(
+                model="gpt-3.5-turbo",  # Ou gpt-4 si tu l'as
+                prompt=prompt_rpo,
+                max_tokens=500
+            )
+
+            # Sauvegarder la fiche de poste dans Google Drive
+            contenu_fiche = response_rpo.choices[0].text.strip()
+            nom_fichier = f"Fiche_{poste_selectionne['Titre du poste recherché']}"
+            lien_drive = enregistrer_fiche_google_drive(nom_fichier, contenu_fiche)
+
+            st.subheader(f"Fiche de Poste générée pour : {poste_selectionne['Titre du poste recherché']}")
+            st.write(contenu_fiche)
+            st.write(f"Fiche stockée sur Google Drive : {lien_drive}")
+        
+        except Exception as e:
+            st.error(f"Erreur lors de la génération de la fiche de poste pour {poste_selectionne['Titre du poste recherché']}: {e}")
