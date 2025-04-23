@@ -1,10 +1,9 @@
 import openai
 import streamlit as st
 
-# Remplacer par ta clé API OpenAI
-API_KEY = 'ton_clé_api_openai'
-
-openai.api_key = API_KEY
+# Remplacez par ta clé API OpenAI
+load_dotenv()
+API_KEY = os.getenv("OPENAI_API_KEY")
 
 # Interface utilisateur Streamlit
 st.title('Générateur de Fiche de Poste')
