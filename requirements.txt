@@ -6,3 +6,5 @@ google-api-python-client
 google-auth
 openai
 requests
+python-dotenv
+
