@@ -1,7 +1,7 @@
 import streamlit as st
 import os
+import subprocess
 import pandas as pd
-import subprocess  # Pour appeler un autre programme Python (nouveau_test.py)
 
 # --- Configuration de la page ---
 st.set_page_config(page_title="Générateur de Fiches de Poste", page_icon="📝", layout="wide")
@@ -18,7 +18,7 @@ menu = st.sidebar.radio("Choisissez une section :", [
     "📤 Export des fiches de poste (JOB.py)",
     "📥 Génération RPO (DESK.py)",
     "🔍 Étude des candidats (🔒 en développement)",
-    "🧪 Nouveau Test"  # Ajout de l'onglet "Nouveau Test"
+    "🧪 Nouveau Test"
 ])
 
 # --- SECTION 1 : CSV ---
@@ -43,7 +43,7 @@ elif menu == "🧾 Création via un formulaire IDEALMATCH":
 elif menu == "📤 Export des fiches de poste (JOB.py)":
     st.subheader("Lancement de la génération complète via JOB.py")
     if st.button("Exécuter le script JOB.py"):
-        os.system("python JOB.py")
+        os.system("python3 JOB.py")
         st.success("Script exécuté. Fiches générées.")
 
 # --- SECTION 4 : Génération RPO ---
@@ -51,7 +51,7 @@ elif menu == "📥 Génération RPO (DESK.py)":
     st.subheader("Récupération des données Google Sheets (DESK.py)")
 
     if st.button("Lancer le script DESK.py"):
-        os.system("python DESK.py")
+        os.system("python3 DESK.py")
         st.success("✅ RPO généré et prêt à être affiché.")
 
     # Vérification et affichage du fichier RPO dans Streamlit
@@ -65,19 +65,21 @@ elif menu == "📥 Génération RPO (DESK.py)":
         st.info("⚠️ Aucun fichier RPO généré pour le moment.")
         st.write("Assurez-vous que le répertoire 'output/' contient bien le fichier 'RPO.xlsx'.")
 
-# --- SECTION 5 : Étude des candidats ---
+# --- SECTION 5 : Nouveau Test ---
+elif menu == "🧪 Nouveau Test":
+    st.subheader("Bienvenue dans l'onglet Nouveau Test")
+
+    if st.button("Lancer le Nouveau Test"):
+        # Exécuter le programme nouveau_test.py en utilisant python3
+        result = subprocess.run(['python3', 'nouveau_test.py'], capture_output=True, text=True)
+        if result.returncode == 0:
+            st.success("Le test a été lancé avec succès !")
+            st.write(result.stdout)  # Affiche le résultat du test
+        else:
+            st.error("Une erreur est survenue lors du lancement du test.")
+            st.write(result.stderr)
+
+# --- SECTION 6 : Étude des candidats ---
 elif menu == "🔍 Étude des candidats (🔒 en développement)":
     st.subheader("🔒 Fonctionnalité bientôt disponible !")
     st.info("Cette section sera bientôt activée pour l'analyse intelligente des candidats.")
-
-# --- SECTION 6 : Nouveau Test ---
-elif menu == "🧪 Nouveau Test":  # Lorsque l'utilisateur choisit cet onglet
-    st.subheader("Bienvenue dans l'onglet Nouveau Test")
-    
-    # Bouton pour lancer le test
-    if st.button("Lancer le Nouveau Test"):
-        # Appel du script Python 'nouveau_test.py'
-        result = subprocess.run(['python', 'nouveau_test.py'], capture_output=True, text=True)
-        
-        # Affichage du message de confirmation
-        st.write(result.stdout)  # Affiche la sortie de notre programme "nouveau_test.py"
